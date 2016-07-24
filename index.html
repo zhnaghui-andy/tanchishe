@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>贪吃蛇</title>
+	<style>
+    body,ul,li,input{
+      margin:0;
+      padding:0;
+      list-style: none;
+    }
+    .info{
+      width: 260px;
+      background-image: url('1.jpg');
+      height: 607px;
+      padding:30px 30px;
+    }
+    .tips{
+      text-align: center;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .info ul li{
+      width: 130px;
+      height: 40px;
+      cursor: pointer;
+      text-align: center;
+      line-height: 40px;
+      margin:10px auto;
+      font-size: 18px;
+      border-radius: 5px;
+    }
+    .aa{
+      background: #FFBD04;
+    }
+    .info #selector{
+      outline: none;
+      width:200px;
+      height: 20px;
+      line-height: 30px;
+      margin-left:24px;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+    #sence{
+     width: 600px;
+     height: 600px;
+     border:1px solid #999;
+     position: absolute;
+     margin:auto;
+     left:200px;
+     top:0;
+     right:0;
+     bottom:0;
+   }
+   .block{
+     float: left;
+     background: #D0F14C;
+     margin:0 1px 1px 0;
+   }
+   .snake{
+     background: #39cc59;
+   }
+   .food{
+     background: #FBA00A;
+   }
+   .active{
+     background: #0BE945;
+   }
+ </style>
+</head>
+<body>
+ <div class="info">
+   <div class="tips">请选择大小</div>
+   <ul>
+     <li data-row="15" class="aa">15×15</li>
+     <li data-row="20" class="aa">20×20</li>
+     <li data-row="30" class="aa">30×30</li>
+   </ul>
+   <input id="selector" type="text">
+   
+   <div class="tips">请选择关卡</div>
+   <ul>
+     <li data-num="one" class="aa">关卡1</li>
+     <li data-num="two" class="aa">关卡2</li>
+     <li data-num="three" class="aa">关卡3</li>
+   </ul>
+
+   <div class="tips">请选择游戏状态</div>
+   <ul>
+     <li data-id="start" class="aa">开始</li>
+     <li data-id="stop" class="aa">暂停</li>
+     <li data-id="restart" class="aa">重新开始</li>
+   </ul>
+ </div>
+  
+  <div id="sence">
+
+  </div>
+</body>
+<script src="./jquery工程文件/jquery-1.12.0.js"></script>
+<script>
+  $(function(){
+    //全局变量
+    var row;
+    var food;
+    var snake = [{x:0,y:0},{x:0,y:1},{x:0,y:2}];
+    var direction = 39;
+    var speed = 300;
+    var timeId;
+    //坐标函数
+    var xy2id = function(x,y){
+      return x + '-' + y;
+    }
+//画场景
+var senceHZ = function(){
+    row = row || 20;
+   var 
+     i = 0, j = 0,
+     sence = $('#sence').empty(),
+     wh = Math.floor(600/row);
+     
+   for( ; i<row; i++){
+    for( j=0; j<row; j++){
+      $('<div>')
+      .addClass('block')
+      .attr('id',xy2id(i,j))
+      .width(wh-1)
+      .height(wh-1)
+      .appendTo(sence)
+    }
+  }
+  sence.width(wh*row).height(wh*row);
+}
+//让蛇移动
+var move = function(){
+   var oldH = snake[snake.length-1];
+   var newH;
+   if( direction === 39){
+     newH = {x:oldH.x,y:oldH.y+1};
+   }else if( direction === 37){
+     newH = {x:oldH.x,y:oldH.y-1};
+   }else if( direction === 38){
+     newH = {x:oldH.x-1,y:oldH.y};
+   }else if( direction === 40){
+     newH = {x:oldH.x+1,y:oldH.y};
+   }
+   //撞墙
+   if(newH.x < 0 || newH.x > row-1 || newH.y < 0 || newH.y >row-1){
+       console.log('撞死了');
+       clearInterval(timeId);
+       return;
+  }else if(newH.x === food.x && newH.y === food.y){
+     snake.push(newH);
+     $('#'+xy2id(newH.x,newH.y)).addClass('snake')
+     .removeClass('food');
+     food = putfood();
+   }else{
+     snake.push(newH);
+     $('#'+xy2id(newH.x,newH.y)).addClass('snake');
+     var tail = snake.shift();
+     $('#'+xy2id(tail.x,tail.y)).removeClass('snake');
+   }
+      
+   }
+   //画蛇
+  var snakeHZ = function(){
+    snake.forEach(function(v){
+    	console.log(v)
+   $('#'+xy2id(v.x,v.y)).addClass('snake');
+ })
+  }
+  
+//画食物
+  var putfood = function(){
+    var _x = Math.floor(Math.random()*row);
+    var _y = Math.floor(Math.random()*row);
+    $('#'+xy2id(_x,_y)).addClass('food');
+    return{x:_x,y:_y};
+    }
+
+//开始
+var start = function(){
+  timeId = setInterval(move,speed);
+}
+
+//暂停
+var stops = function(){
+  clearInterval(timeId);
+}
+
+//重新开始
+var restart = function(){
+  clearInterval(timeId);
+  $('.snake').removeClass('snake');
+  $('.food').removeClass('food');
+  snake = [{x:0,y:0},{x:0,y:1},{x:0,y:2}];
+  food = putfood();
+  setInterval(move,speed);
+}
+    //主体逻辑
+    senceHZ();
+    snakeHZ();
+    food = putfood();
+    //事件和一些其他的操作界面
+$('input').bind('keydown',function(e){
+   if(e.keyCode === 13){
+     row = $(this).val();
+     if( isNaN(Number(row))){
+       alert('别调皮')
+     }else{
+       $('li.active').removeClass('active');
+       senceHZ();
+       snakeHZ();
+       food = putfood();
+       $('li[data-row='+row+']').addClass('active');
+
+     }
+     
+   }
+})
+
+	
+
+	$(document).bind('keydown',function(e){
+    //向右时不能向左，向上时不能下
+    if(Math.abs(e.keyCode - direction) === 2){
+      return;
+    }
+    if( e.keyCode < 37 || e.keyCode > 40){
+     return;
+   }
+   direction = e.keyCode;
+ })
+
+//点击选择行列
+$('ul li[data-row]').bind('click',function(){
+  row = Number($(this).attr('data-row'));
+  $('li.active').removeClass('active');
+  $(this).addClass('active');
+  senceHZ();
+  snakeHZ();
+  food = putfood();
+})
+
+//点击选择游戏状态
+$('ul li[data-id]').bind('click',function(e){
+  var str = $(this).attr('data-id');
+  if(str === 'start'){
+    $('li[data-id].active').removeClass('active');
+    $(this).addClass('active');
+    start();
+  }else if(str === 'stop'){
+    $('li[data-id].active').removeClass('active');
+    $(this).addClass('active');
+    stops();
+  }else if(str === 'restart'){
+    $('li[data-id].active').removeClass('active');
+    $(this).addClass('active');
+    restart();
+  }
+})
+$(document).bind('keyup',function(e){
+  if(e.keyCode === 32){
+    stops();
+    $('li.active').removeClass('active');
+    $('li[data-id=stop]').addClass('active');
+}
+})
+
+$('ul li[data-num]').bind('click',function(){
+  var num = $(this).attr('data-num');
+  if(num === 'one'){
+    $('li[data-num].active').removeClass('active');
+    $(this).addClass('active');
+    speed = 300;
+  }else if(num === 'two'){
+    $('li[data-num].active').removeClass('active');
+    $(this).addClass('active');
+    speed = 200;
+  }else if(num === 'three'){
+    $('li[data-num].active').removeClass('active');
+    $(this).addClass('active');
+    speed = 50;
+  }
+})
+ })
+
+
+</script>
+</html>
